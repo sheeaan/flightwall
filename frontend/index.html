@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightWall - Live Flight Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="map-container">
+        <!-- Leaflet Map -->
+        <div id="map"></div>
+
+        <!-- Flight List Sidebar -->
+        <div class="flight-list" id="flightList">
+            <div class="flight-list-header">
+                <span class="flight-list-title">Nearby Aircraft</span>
+                <span class="flight-list-count" id="flightCount">0</span>
+            </div>
+            <div class="flight-list-items" id="flightListItems">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Flight Detail Panel (hidden by default) -->
+        <div class="flight-panel" id="flightPanel" style="display: none;">
+            <button class="flight-panel-close" onclick="closeFlightPanel()">&times;</button>
+
+            <!-- Flight Header with Logo and Route -->
+            <div class="flight-header">
+                <div class="airline-logo" id="panelAirlineLogo">
+                    <span class="airline-logo-text" id="panelAirlineCode">--</span>
+                </div>
+
+                <div class="route-hero">
+                    <div class="route-codes">
+                        <span class="route-code" id="panelOrigin">---</span>
+                        <span class="route-arrow">➔</span>
+                        <span class="route-code" id="panelDestination">---</span>
+                    </div>
+                    <div class="route-names">
+                        <span class="route-name" id="panelOriginName">Origin Airport</span>
+                        <span class="route-name" id="panelDestinationName">Destination Airport</span>
+                    </div>
+                </div>
+
+                <div class="flight-meta">
+                    <div class="flight-meta-item">
+                        <span class="meta-label">Flight:</span>
+                        <span class="meta-value" id="panelCallsign">---</span>
+                    </div>
+                    <div class="flight-meta-item">
+                        <span class="meta-label">Aircraft:</span>
+                        <span class="meta-value" id="panelAircraft">---</span>
+                    </div>
+                    <div class="flight-meta-item">
+                        <span class="meta-label">Status:</span>
+                        <span class="meta-value status-badge" id="panelPhase">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry Graphs Section -->
+            <div class="telemetry-graphs">
+                <div class="telemetry-graph-card">
+                    <div class="graph-header">
+                        <span class="graph-label">Altitude (ft)</span>
+                        <span class="graph-value" id="panelAltitude">---</span>
+                    </div>
+                    <div class="graph-container">
+                        <canvas id="altitudeGraph" width="200" height="60"></canvas>
+                    </div>
+                </div>
+
+                <div class="telemetry-graph-card">
+                    <div class="graph-header">
+                        <span class="graph-label">Ground Speed (kts)</span>
+                        <span class="graph-value" id="panelSpeed">---</span>
+                    </div>
+                    <div class="graph-container">
+                        <canvas id="speedGraph" width="200" height="60"></canvas>
+                    </div>
+                </div>
+
+                <div class="telemetry-graph-card">
+                    <div class="graph-header">
+                        <span class="graph-label">Heading (°)</span>
+                        <span class="graph-value" id="panelHeading">---</span>
+                    </div>
+                    <div class="graph-container">
+                        <canvas id="headingGraph" width="200" height="60"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flight Status & Schedule -->
+            <div class="flight-status-section">
+                <div class="status-section-title">Flight Status & Schedule</div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-label">Current Status:</div>
+                        <div class="status-value" id="panelCurrentStatus">Cruise (En route)</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Vertical Rate:</div>
+                        <div class="status-value" id="panelVRate">0 fpm</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Distance:</div>
+                        <div class="status-value" id="panelDistance">--- km</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Flight Status:</div>
+                        <div class="status-value status-on-time" id="panelFlightStatus">Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anomaly indicator -->
+            <div class="anomaly-banner" id="panelAnomaly" style="display: none;">
+                ⚠️ ANOMALY DETECTED
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot" id="connectionDot"></span>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+            <div class="status-item">
+                <span id="lastUpdate">Last update: --</span>
+            </div>
+            <div class="status-item">
+                <span id="queryTime">Query: -- ms</span>
+            </div>
+            <div class="status-item" style="margin-left: auto;">
+                <a href="/ticker" style="color: var(--accent-cyan); text-decoration: none;">Ticker View &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- App Script -->
+    <script src="/js/map.js"></script>
+</body>
+</html>

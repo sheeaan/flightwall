@@ -1,0 +1,24 @@
+# Flask and extensions
+Flask>=3.0.0
+flask-cors>=4.0.0
+
+# Database
+SQLAlchemy>=2.0.0
+alembic>=1.13.0
+
+# Data processing and analytics
+numpy>=1.26.0
+pandas>=2.1.0
+requests>=2.31.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Geolocation (IP-based)
+geocoder>=1.38.1
+
+# Production server (optional)
+gunicorn>=21.0.0
+
+# Development
+pytest>=7.4.0

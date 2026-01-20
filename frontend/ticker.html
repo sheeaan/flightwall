@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightWall - Ticker Display</title>
+
+    <!-- LED Matrix Style Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=VT323&display=swap" rel="stylesheet">
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <style>
+        /* LED Matrix Display Styling */
+        :root {
+            --led-green: #33ff33;
+            --led-amber: #ffbf00;
+            --led-red: #ff3333;
+            --led-cyan: #00ffff;
+            --led-white: #f0f0f0;
+            --led-dim: #404040;
+            --matrix-bg: #0a0a0a;
+        }
+
+        body {
+            background: var(--matrix-bg);
+            cursor: none;
+            font-family: 'VT323', 'DotGothic16', monospace;
+            overflow: hidden;
+        }
+
+        body:hover {
+            cursor: default;
+        }
+
+        /* LED Matrix Container */
+        .led-display {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--matrix-bg);
+        }
+
+        /* Dot matrix overlay effect */
+        .led-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle, transparent 1px, var(--matrix-bg) 1px);
+            background-size: 3px 3px;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 10;
+        }
+
+        /* Main content area */
+        .led-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            padding: 40px;
+            max-width: 900px;
+        }
+
+        /* Logo area */
+        .led-logo {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .led-logo svg {
+            width: 100%;
+            height: 100%;
+            filter: brightness(1.2);
+        }
+
+        /* Text info area */
+        .led-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .led-line {
+            font-size: 32px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px currentColor;
+            white-space: nowrap;
+        }
+
+        .led-airline {
+            color: var(--led-white);
+            font-size: 42px;
+            font-weight: bold;
+        }
+
+        .led-route {
+            color: var(--led-cyan);
+            font-size: 36px;
+        }
+
+        .led-aircraft {
+            color: var(--led-amber);
+            font-size: 28px;
+        }
+
+        .led-telemetry {
+            color: var(--led-green);
+            font-size: 26px;
+            margin-top: 8px;
+        }
+
+        .led-telemetry-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .led-label {
+            color: var(--led-dim);
+        }
+
+        .led-value {
+            color: var(--led-green);
+        }
+
+        .led-value.negative {
+            color: var(--led-red);
+        }
+
+        .led-value.positive {
+            color: var(--led-green);
+        }
+
+        /* Empty state */
+        .led-empty {
+            color: var(--led-dim);
+            font-size: 32px;
+            text-align: center;
+            text-shadow: 0 0 10px var(--led-dim);
+        }
+
+        /* Footer */
+        .led-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            font-size: 18px;
+            color: var(--led-dim);
+        }
+
+        .led-footer a {
+            color: var(--led-cyan);
+            text-decoration: none;
+        }
+
+        .led-progress {
+            width: 150px;
+            height: 4px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .led-progress-bar {
+            height: 100%;
+            background: var(--led-cyan);
+            transition: width 0.1s linear;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 50%;
+            right: -320px;
+            transform: translateY(-50%);
+            width: 300px;
+            background: #111;
+            border: 1px solid #333;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            z-index: 2000;
+            transition: right 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            border-radius: 8px 0 0 0;
+        }
+
+        .settings-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .settings-close:hover {
+            color: #fff;
+        }
+
+        .settings-content {
+            padding: 20px;
+        }
+
+        .range-label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .range-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .range-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--led-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .range-value {
+            font-family: 'VT323', monospace;
+            font-size: 28px;
+            color: var(--led-cyan);
+            min-width: 70px;
+            text-align: right;
+        }
+
+        .range-limits {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .settings-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .settings-group {
+            margin-bottom: 16px;
+        }
+
+        .unit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .unit-label {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .unit-toggle {
+            display: flex;
+            gap: 4px;
+            background: #1a1a1a;
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .unit-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            padding: 6px 14px;
+            font-size: 14px;
+            font-family: 'VT323', monospace;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .unit-btn:hover {
+            color: #aaa;
+        }
+
+        .unit-btn.active {
+            background: var(--led-cyan);
+            color: #000;
+        }
+
+        /* Settings Toggle */
+        .settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 50%;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .settings-toggle:hover,
+        .settings-toggle.visible {
+            opacity: 1;
+        }
+
+        .settings-toggle:hover {
+            color: var(--led-cyan);
+            border-color: var(--led-cyan);
+        }
+
+        /* ============================================
+           Modern Display Style
+           ============================================ */
+        body.modern {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body.modern .led-display {
+            background: transparent;
+        }
+
+        body.modern .led-display::before {
+            display: none;
+        }
+
+        body.modern .led-content {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 48px 56px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        body.modern .led-logo {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        body.modern .led-logo svg {
+            filter: none;
+        }
+
+        body.modern .led-line {
+            text-shadow: none;
+            letter-spacing: 0;
+        }
+
+        body.modern .led-airline {
+            font-size: 36px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        body.modern .led-route {
+            font-size: 28px;
+            font-weight: 500;
+            color: #60a5fa;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body.modern .led-aircraft {
+            font-size: 18px;
+            font-weight: 400;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        body.modern .led-telemetry {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        body.modern .led-telemetry-row {
+            gap: 24px;
+            font-size: 20px;
+        }
+
+        body.modern .led-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        body.modern .led-value {
+            color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        body.modern .led-value.positive {
+            color: #34d399;
+        }
+
+        body.modern .led-value.negative {
+            color: #f87171;
+        }
+
+        body.modern .led-empty {
+            font-family: 'Inter', sans-serif;
+            font-size: 24px;
+            color: #6b7280;
+            text-shadow: none;
+        }
+
+        body.modern .led-footer {
+            font-family: 'Inter', sans-serif;
+            color: #6b7280;
+        }
+
+        body.modern .led-progress {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        body.modern .led-progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 4px;
+        }
+
+        body.modern .led-footer a {
+            color: #60a5fa;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .led-content {
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .led-logo {
+                width: 80px;
+                height: 80px;
+            }
+
+            .led-airline {
+                font-size: 28px;
+            }
+
+            .led-route {
+                font-size: 24px;
+            }
+
+            .led-aircraft {
+                font-size: 20px;
+            }
+
+            .led-telemetry {
+                font-size: 18px;
+            }
+
+            body.modern .led-content {
+                padding: 24px 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="led-display">
+        <!-- Main Content -->
+        <div class="led-content" id="ledContent">
+            <!-- Logo -->
+            <div class="led-logo" id="ledLogo"></div>
+
+            <!-- Flight Info -->
+            <div class="led-info" id="ledInfo">
+                <div class="led-line led-airline" id="ledAirline">---</div>
+                <div class="led-line led-route" id="ledRoute">---</div>
+                <div class="led-line led-aircraft" id="ledAircraft">---</div>
+                <div class="led-telemetry">
+                    <div class="led-telemetry-row">
+                        <span class="led-label">Alt:</span><span class="led-value" id="ledAlt">---</span><span class="led-label">,Spd:</span><span class="led-value" id="ledSpd">---</span>
+                    </div>
+                    <div class="led-telemetry-row">
+                        <span class="led-label">Trk:</span><span class="led-value" id="ledTrk">---</span><span class="led-label">,Vr:</span><span class="led-value" id="ledVr">---</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="led-empty" id="ledEmpty" style="display: none;">
+            No Aircraft in Range<br>
+            Scanning...
+        </div>
+
+        <!-- Footer -->
+        <div class="led-footer">
+            <span id="tickerCount">0/0</span>
+            <div class="led-progress">
+                <div class="led-progress-bar" id="progressBar"></div>
+            </div>
+            <span id="tickerTime">--:--:--</span>
+            <a href="/">Map</a>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <span class="settings-title">Settings</span>
+                <button class="settings-close" id="settingsClose">&times;</button>
+            </div>
+            <div class="settings-content">
+                <!-- Range Setting -->
+                <div class="settings-group">
+                    <label class="range-label">Detection Radius</label>
+                    <div class="range-slider-container">
+                        <input type="range" id="rangeSlider" class="range-slider" min="1" max="50" value="10" step="1">
+                        <div class="range-value"><span id="rangeValue">10</span>km</div>
+                    </div>
+                    <div class="range-limits">
+                        <span>1 km</span>
+                        <span>50 km</span>
+                    </div>
+                </div>
+
+                <!-- Unit Settings -->
+                <div class="settings-group" style="margin-top: 24px;">
+                    <label class="range-label">Units</label>
+
+                    <div class="unit-row">
+                        <span class="unit-label">Altitude</span>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" id="altFt" data-unit="ft">ft</button>
+                            <button class="unit-btn" id="altM" data-unit="m">m</button>
+                        </div>
+                    </div>
+
+                    <div class="unit-row">
+                        <span class="unit-label">Speed</span>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" id="spdKts" data-unit="kts">kts</button>
+                            <button class="unit-btn" id="spdKph" data-unit="kph">kph</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Settings -->
+                <div class="settings-group" style="margin-top: 24px;">
+                    <label class="range-label">Display</label>
+
+                    <div class="unit-row">
+                        <span class="unit-label">Style</span>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" id="styleLed">LED</button>
+                            <button class="unit-btn" id="styleModern">Modern</button>
+                        </div>
+                    </div>
+
+                    <div class="unit-row">
+                        <span class="unit-label">Airports</span>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" id="airportCodes">Codes</button>
+                            <button class="unit-btn" id="airportNames">Names</button>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="settings-hint">Settings are saved automatically.</p>
+            </div>
+        </div>
+
+        <!-- Settings Toggle -->
+        <button class="settings-toggle" id="settingsToggle" title="Settings (S)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/airline-logos.js"></script>
+    <script src="/js/ticker.js"></script>
+</body>
+</html>

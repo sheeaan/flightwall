@@ -18,6 +18,8 @@ It was a noon picnic with friends; just food, conversation, and a gazebo providi
 
 Someone laughed. A few called cap. But when we checked FlightRadar24, there it was: a Lufthansa 747-400, inbound from Frankfurt.
 
+![Lufthansa 747-400 over Toronto](images/lufthansa-747.webp)
+
 That was the first time I pulled this trick, and their reactions made me realize how strange it must seem from the outside. But there's no secret ability here, just years of living directly under Toronto Pearson's approach path and paying attention to what most people tune out.
 
 You start to notice patterns. The silhouette of a 747 is unmistakable with that iconic hump. A widebody Airbus has a different stance than a Boeing. Liveries become familiar: the blue tail of WestJet, the red maple leaf of Air Canada, Lufthansa's yellow and blue. And flight paths tell their own story. Planes approaching from the east are usually coming from Europe. From the north? Likely Asia or the west coast. The direction alone narrows it down before you even see the aircraft.
@@ -219,6 +221,59 @@ The analytics layer is intentionally lightweight but extensible.
 FlightWall is still an evolving project. The current implementation serves as a foundation for experimenting with more advanced ingestion strategies, richer analytics, and alternate display surfaces.
 
 My end goal is to run this on a Raspberry Pi 3 Model B+ connected to a dedicated LED ticker or monitor. A conversation-starter piece for my home that shows what's flying overhead in real time. I'm excited to develop this software prototype into a hardware one as well.
+
+---
+
+## Gallery
+
+A collection of moments that inspired this project.
+
+<p align="center">
+  <img src="photos/20240910_081543.jpg" width="600" alt="Watching an Asiana A380 at Incheon Airport">
+</p>
+<p align="center"><em>Watching an Asiana A380 at the gate — Seoul Incheon Airport</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/IMG_20240624_071230071.jpg" width="600" alt="Plane on final approach at dusk">
+</p>
+<p align="center"><em>On final approach — the view from under Toronto Pearson's flight path</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/20250708_155956.jpg" width="600" alt="Air France 787 overhead">
+</p>
+<p align="center"><em>Air France 787 passing overhead</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/20250814_193235.jpg" width="600" alt="Air Canada at golden hour">
+</p>
+<p align="center"><em>Air Canada at golden hour — being towed to the gate</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/20250926_161019.jpg" width="600" alt="Air Canada 777 in flight">
+</p>
+<p align="center"><em>Air Canada 777 cruising through clear skies</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/20251121_161038.jpg" width="600" alt="Air France on approach">
+</p>
+<p align="center"><em>Air France on approach — the kind of view that started it all</em></p>
+
+<br>
+
+<p align="center">
+  <img src="photos/20250814_185927.jpg" width="600" alt="Aircraft nose at the gate">
+</p>
+<p align="center"><em>Up close at gate 63</em></p>
 
 ---
 

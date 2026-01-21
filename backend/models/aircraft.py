@@ -5,7 +5,7 @@ Maps ICAO24 hex addresses to aircraft metadata (type, registration, etc.).
 This data comes from external databases and is relatively static.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import String, DateTime, Index
@@ -86,14 +86,14 @@ class Aircraft(Base):
     # Metadata
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         comment='Record creation timestamp'
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         comment='Last update timestamp'
     )
 

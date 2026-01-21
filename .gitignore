@@ -23,20 +23,19 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
 
 # Database
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
+aircraftDatabase.csv
 
-# IDE
+# IDE / Editors
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 *~
@@ -44,6 +43,7 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+nul
 
 # Logs
 *.log
@@ -54,25 +54,6 @@ logs/
 .coverage
 htmlcov/
 
-# Virtual environment
-venv/
-
-# Environment variables
-.env
+# Credentials
 credentials.json
 
-# Tooling / Editors
-.vscode/
-.claude/
-
-# OS
-nul
-.DS_Store
-
-# Logs
-*.log
-
-# Databases
-*.db
-*.db-wal
-*.db-shm

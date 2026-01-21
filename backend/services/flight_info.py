@@ -14,7 +14,7 @@ import os
 import random
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Tuple
 import threading
 
@@ -375,8 +375,7 @@ class FlightInfoService:
         # Estimate time to destination (add 10% for approach)
         hours_remaining = (current_distance_km / speed_kmh) * 1.1
 
-        eta = datetime.now(timezone.utc) + \
-              __import__('datetime').timedelta(hours=hours_remaining)
+        eta = datetime.now(timezone.utc) + timedelta(hours=hours_remaining)
 
         return eta
 

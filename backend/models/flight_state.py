@@ -11,7 +11,7 @@ Design notes:
 - Includes computed fields for display (flight phase, etc.)
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -195,14 +195,14 @@ class FlightState(Base):
     # Record timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         comment='First seen timestamp'
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         index=True,  # Index for cleanup queries
         comment='Last update timestamp'
     )
@@ -268,4 +268,4 @@ class FlightState(Base):
         """Check if data is stale (no update in 60+ seconds)."""
         if self.last_contact is None:
             return True
-        return (datetime.utcnow().timestamp() - self.last_contact) > 60
+        return (datetime.now(timezone.utc).timestamp() - self.last_contact) > 60

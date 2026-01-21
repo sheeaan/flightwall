@@ -14,7 +14,7 @@ Schema optimized for:
 - Rolling window aggregations
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import String, Float, Integer, DateTime, Boolean, Index
@@ -140,7 +140,7 @@ class PositionHistory(Base):
     # Record creation time (for cleanup queries)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         index=True,
         comment='Record creation time'
     )
@@ -204,6 +204,5 @@ def get_retention_cutoff_timestamp(hours: int) -> int:
 
     Records older than this should be deleted.
     """
-    from datetime import timezone
     cutoff = datetime.now(timezone.utc).timestamp() - (hours * 3600)
     return int(cutoff)

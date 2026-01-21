@@ -157,8 +157,8 @@ def run_development_server():
     port = int(os.environ.get('PORT', 5000))
 
     logger.info(f'Starting FlightWall on http://localhost:{port}')
-    logger.info('Map view: http://localhost:{port}/')
-    logger.info('Ticker view: http://localhost:{port}/ticker')
+    logger.info(f'Map view: http://localhost:{port}/')
+    logger.info(f'Ticker view: http://localhost:{port}/ticker')
 
     app.run(
         host='0.0.0.0',

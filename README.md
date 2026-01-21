@@ -238,21 +238,21 @@ A collection of moments that inspired this project.
 <p align="center">
   <img src="photos/IMG_20240624_071230071.jpg" width="600" alt="Plane on final approach at dusk">
 </p>
-<p align="center"><em>On final approach — the view from under Toronto Pearson's flight path</em></p>
+<p align="center"><em>Waking up at the crack of dawn for this type of view.</em></p>
 
 <br>
 
 <p align="center">
   <img src="photos/20250708_155956.jpg" width="600" alt="Air France 787 overhead">
 </p>
-<p align="center"><em>Air France 787 passing overhead</em></p>
+<p align="center"><em>Air France A350 from CDG deploying its gear on short final.</em></p>
 
 <br>
 
 <p align="center">
   <img src="photos/20250814_193235.jpg" width="600" alt="Air Canada at golden hour">
 </p>
-<p align="center"><em>Air Canada at golden hour — being towed to the gate</em></p>
+<p align="center"><em>Air Canada A330 to Casablanca pushing back from the gate.</em></p>
 
 <br>
 
@@ -273,7 +273,7 @@ A collection of moments that inspired this project.
 <p align="center">
   <img src="photos/20250814_185927.jpg" width="600" alt="Aircraft nose at the gate">
 </p>
-<p align="center"><em>Up close at gate 63</em></p>
+<p align="center"><em>Wowie shot at gate 63</em></p>
 
 ---
 

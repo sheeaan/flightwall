@@ -1,6 +1,7 @@
 # FlightWall
 
 Real-time flight telemetry visualization system that transforms your computer into a live aviation display.
+![flight-telemetry](https://github.com/user-attachments/assets/6c72bbcf-a347-49cf-93e8-aac69f4c959b)
 
 ## Overview
 

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlightWall - Flight Telemetry Dashboard</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="telem-dashboard">
+        <!-- Scrolling Ticker Bar -->
+        <div class="telem-ticker-bar">
+            <div class="telem-ticker-content" id="tickerContent">
+                <span class="telem-ticker-item">FLIGHTWALL TELEMETRY DASHBOARD</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerWeather">Weather: Loading...</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerFlight">Flight: ---</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerSystem">System: Connected</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerRoute">Route: ---</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerAircraft">Aircraft: ---</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item">FLIGHTWALL TELEMETRY DASHBOARD</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerWeather2">Weather: Loading...</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerFlight2">Flight: ---</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerSystem2">System: Connected</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerRoute2">Route: ---</span>
+                <span class="telem-ticker-sep">|</span>
+                <span class="telem-ticker-item" id="tickerAircraft2">Aircraft: ---</span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="telem-main">
+            <!-- Left Sidebar -->
+            <div class="telem-sidebar">
+                <a href="/" class="telem-sidebar-btn" title="Map View">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                        <line x1="8" y1="2" x2="8" y2="18"/>
+                        <line x1="16" y1="6" x2="16" y2="22"/>
+                    </svg>
+                </a>
+                <a href="/ticker" class="telem-sidebar-btn" title="Ticker View">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                </a>
+                <button class="telem-sidebar-btn" id="copyFlightInfo" title="Copy Flight Info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Flight Info Panel -->
+            <div class="telem-info-panel">
+                <div class="telem-airline-logo" id="telemAirlineLogo">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="telem-airline-name" id="telemAirlineName">Loading...</div>
+
+                <div class="telem-route">
+                    <span class="telem-route-code" id="telemOrigin">---</span>
+                    <span class="telem-route-arrow">&#10132;</span>
+                    <span class="telem-route-code" id="telemDestination">---</span>
+                </div>
+                <div class="telem-route-names">
+                    <span id="telemOriginName">Origin</span>
+                    <span id="telemDestinationName">Destination</span>
+                </div>
+
+                <div class="telem-flight-meta">
+                    <div class="telem-meta-row">
+                        <span class="telem-meta-label">Flight</span>
+                        <span class="telem-meta-value" id="telemCallsign">---</span>
+                    </div>
+                    <div class="telem-meta-row">
+                        <span class="telem-meta-label">Aircraft</span>
+                        <span class="telem-meta-value" id="telemAircraft">---</span>
+                    </div>
+                    <div class="telem-meta-row">
+                        <span class="telem-meta-label">Status</span>
+                        <span class="telem-meta-value status-badge" id="telemPhase">---</span>
+                    </div>
+                    <div class="telem-meta-row">
+                        <span class="telem-meta-label">ICAO24</span>
+                        <span class="telem-meta-value" id="telemIcao24">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Area -->
+            <div class="telem-map-area">
+                <div id="telemMap"></div>
+            </div>
+        </div>
+
+        <!-- Telemetry Charts Row -->
+        <div class="telem-charts-row">
+            <div class="telem-chart-card">
+                <div class="telem-chart-header">
+                    <span class="telem-chart-label">Altitude</span>
+                    <span class="telem-chart-value" id="telemAltValue">---</span>
+                    <span class="telem-chart-unit">ft</span>
+                </div>
+                <div class="telem-chart-container">
+                    <canvas id="telemAltChart"></canvas>
+                </div>
+            </div>
+            <div class="telem-chart-card">
+                <div class="telem-chart-header">
+                    <span class="telem-chart-label">Ground Speed</span>
+                    <span class="telem-chart-value" id="telemSpeedValue">---</span>
+                    <span class="telem-chart-unit">kts</span>
+                </div>
+                <div class="telem-chart-container">
+                    <canvas id="telemSpeedChart"></canvas>
+                </div>
+            </div>
+            <div class="telem-chart-card">
+                <div class="telem-chart-header">
+                    <span class="telem-chart-label">Heading</span>
+                    <span class="telem-chart-value" id="telemHeadingValue">---</span>
+                    <span class="telem-chart-unit">&deg;</span>
+                </div>
+                <div class="telem-chart-container">
+                    <canvas id="telemHeadingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Status & Schedule Row -->
+        <div class="telem-status-row">
+            <div class="telem-status-section-title">Flight Status & Schedule</div>
+            <div class="telem-status-grid">
+                <div class="telem-status-item">
+                    <div class="telem-status-label">Current Status</div>
+                    <div class="telem-status-value" id="telemCurrentStatus">---</div>
+                </div>
+                <div class="telem-status-item">
+                    <div class="telem-status-label">Vertical Rate</div>
+                    <div class="telem-status-value" id="telemVRate">---</div>
+                </div>
+                <div class="telem-status-item">
+                    <div class="telem-status-label">Distance</div>
+                    <div class="telem-status-value" id="telemDistance">---</div>
+                </div>
+                <div class="telem-status-item">
+                    <div class="telem-status-label">Flight Status</div>
+                    <div class="telem-status-value status-on-time" id="telemFlightStatus">---</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Status Bar -->
+        <div class="telem-status-bar">
+            <div class="telem-bar-item">
+                <span class="status-dot" id="telemConnDot"></span>
+                <span id="telemConnStatus">Connecting...</span>
+            </div>
+            <div class="telem-bar-item">
+                <span id="telemUtcTime">UTC: --:--:--</span>
+            </div>
+            <div class="telem-bar-item">
+                <span id="telemLocalTime">Local: --:--:--</span>
+            </div>
+            <div class="telem-bar-item">
+                <span id="telemFlightTime">Flight Time: --:--</span>
+            </div>
+            <div class="telem-bar-item">
+                <span id="telemLastUpdate">Last update: --</span>
+            </div>
+            <div class="telem-bar-item" style="margin-left: auto;">
+                <a href="/" style="color: var(--accent-cyan); text-decoration: none;">&larr; Map View</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Airline Logos -->
+    <script src="/js/airline-logos.js"></script>
+
+    <!-- Telemetry Dashboard Script -->
+    <script src="/js/telemetry.js"></script>
+</body>
+</html>

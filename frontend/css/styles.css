@@ -1006,3 +1006,338 @@ body {
     stroke-dasharray: 8, 4;
     fill: rgba(6, 182, 212, 0.08);
 }
+
+/* ============================================
+   Telemetry Dashboard View
+   ============================================ */
+.telem-dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--bg-primary);
+}
+
+/* Scrolling Ticker Bar */
+.telem-ticker-bar {
+    height: 28px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.telem-ticker-content {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    white-space: nowrap;
+    animation: tickerScroll 40s linear infinite;
+}
+
+.telem-ticker-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 0 var(--spacing-md);
+}
+
+.telem-ticker-sep {
+    color: var(--border-color);
+    font-size: 11px;
+}
+
+@keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* Main Content Area */
+.telem-main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Left Sidebar */
+.telem-sidebar {
+    width: 44px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    gap: var(--spacing-xs);
+    flex-shrink: 0;
+}
+
+.telem-sidebar-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.telem-sidebar-btn:hover {
+    color: var(--accent-cyan);
+    border-color: var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+/* Flight Info Panel */
+.telem-info-panel {
+    width: 260px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.telem-airline-logo {
+    width: 72px;
+    height: 44px;
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.telem-airline-logo svg {
+    width: 100%;
+    height: 100%;
+}
+
+.telem-airline-name {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.telem-route {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.telem-route-code {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+}
+
+.telem-route-arrow {
+    font-size: 22px;
+    color: var(--accent-cyan);
+}
+
+.telem-route-names {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+    padding: 0 var(--spacing-xs);
+}
+
+.telem-flight-meta {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--spacing-md);
+}
+
+.telem-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.telem-meta-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.telem-meta-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Map Area */
+.telem-map-area {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.telem-map-area #telemMap {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-secondary);
+}
+
+/* Telemetry Charts Row */
+.telem-charts-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-color);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.telem-chart-card {
+    background: var(--bg-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.telem-chart-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.telem-chart-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.telem-chart-value {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-left: auto;
+}
+
+.telem-chart-unit {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.telem-chart-container {
+    height: 80px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.telem-chart-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Flight Status & Schedule Row */
+.telem-status-row {
+    background: var(--bg-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.telem-status-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.telem-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.telem-status-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.telem-status-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.telem-status-value {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Bottom Status Bar */
+.telem-status-bar {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    font-size: 11px;
+    color: var(--text-secondary);
+    gap: var(--spacing-lg);
+    flex-shrink: 0;
+}
+
+.telem-bar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .telem-info-panel {
+        width: 200px;
+    }
+    .telem-route-code {
+        font-size: 22px;
+    }
+    .telem-status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .telem-info-panel {
+        display: none;
+    }
+    .telem-sidebar {
+        display: none;
+    }
+    .telem-charts-row {
+        grid-template-columns: 1fr;
+    }
+}

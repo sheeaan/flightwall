@@ -305,6 +305,9 @@ function selectFlight(icao24) {
     // Show and update panel
     document.getElementById('flightPanel').style.display = 'block';
 
+    // Update telemetry dashboard link
+    document.getElementById('panelTelemLink').href = `/telemetry?icao24=${icao24}`;
+
     // Fetch latest data for this flight
     fetchFlightDetails(icao24);
 

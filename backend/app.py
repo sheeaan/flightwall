@@ -128,6 +128,11 @@ def create_app(start_ingestion: bool = True) -> Flask:
         """Serve ticker display view."""
         return send_from_directory(app.static_folder, 'ticker.html')
 
+    @app.route('/telemetry')
+    def telemetry():
+        """Serve flight telemetry dashboard view."""
+        return send_from_directory(app.static_folder, 'telemetry.html')
+
     @app.route('/health')
     def health():
         """Simple health check endpoint."""
@@ -159,6 +164,7 @@ def run_development_server():
     logger.info(f'Starting FlightWall on http://localhost:{port}')
     logger.info(f'Map view: http://localhost:{port}/')
     logger.info(f'Ticker view: http://localhost:{port}/ticker')
+    logger.info(f'Telemetry view: http://localhost:{port}/telemetry?icao24=<hex>')
 
     app.run(
         host='0.0.0.0',

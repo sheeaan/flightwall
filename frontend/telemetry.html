@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlightWall - Flight Telemetry Dashboard</title>
+    <title>Flight Telemetry</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,7 +11,7 @@
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- App Styles -->
     <link rel="stylesheet" href="/css/styles.css">
@@ -21,29 +21,9 @@
         <!-- Scrolling Ticker Bar -->
         <div class="telem-ticker-bar">
             <div class="telem-ticker-content" id="tickerContent">
-                <span class="telem-ticker-item">FLIGHTWALL TELEMETRY DASHBOARD</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerWeather">Weather: Loading...</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerFlight">Flight: ---</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerSystem">System: Connected</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerRoute">Route: ---</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerAircraft">Aircraft: ---</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item">FLIGHTWALL TELEMETRY DASHBOARD</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerWeather2">Weather: Loading...</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerFlight2">Flight: ---</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerSystem2">System: Connected</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerRoute2">Route: ---</span>
-                <span class="telem-ticker-sep">|</span>
-                <span class="telem-ticker-item" id="tickerAircraft2">Aircraft: ---</span>
+                <span class="telem-ticker-item" id="tickerText1">Loading flight telemetry data...</span>
+                <!-- Duplicate for seamless loop -->
+                <span class="telem-ticker-item" id="tickerText2">Loading flight telemetry data...</span>
             </div>
         </div>
 
@@ -51,62 +31,80 @@
         <div class="telem-main">
             <!-- Left Sidebar -->
             <div class="telem-sidebar">
-                <a href="/" class="telem-sidebar-btn" title="Map View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-                        <line x1="8" y1="2" x2="8" y2="18"/>
-                        <line x1="16" y1="6" x2="16" y2="22"/>
-                    </svg>
-                </a>
-                <a href="/ticker" class="telem-sidebar-btn" title="Ticker View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                        <line x1="8" y1="21" x2="16" y2="21"/>
-                        <line x1="12" y1="17" x2="12" y2="21"/>
-                    </svg>
-                </a>
-                <button class="telem-sidebar-btn" id="copyFlightInfo" title="Copy Flight Info">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                    </svg>
-                </button>
+                <div class="telem-sidebar-top">
+                    <a href="/" class="telem-sidebar-btn" title="Map View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </a>
+                    <a href="/ticker" class="telem-sidebar-btn" title="Ticker View">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </a>
+                    <button class="telem-sidebar-btn" id="copyFlightInfo" title="Copy Flight Info">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="telem-sidebar-bottom">
+                    <button class="telem-sidebar-btn" title="Info">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </button>
+                    <button class="telem-sidebar-btn" title="Settings">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Flight Info Panel -->
             <div class="telem-info-panel">
-                <div class="telem-airline-logo" id="telemAirlineLogo">
-                    <!-- Populated by JS -->
-                </div>
-                <div class="telem-airline-name" id="telemAirlineName">Loading...</div>
+                <div class="telem-info-content">
+                    <!-- Large Airline Logo -->
+                    <div class="telem-airline-logo" id="telemAirlineLogo">
+                        <!-- Populated by JS -->
+                    </div>
 
-                <div class="telem-route">
-                    <span class="telem-route-code" id="telemOrigin">---</span>
-                    <span class="telem-route-arrow">&#10132;</span>
-                    <span class="telem-route-code" id="telemDestination">---</span>
-                </div>
-                <div class="telem-route-names">
-                    <span id="telemOriginName">Origin</span>
-                    <span id="telemDestinationName">Destination</span>
+                    <!-- Route Display -->
+                    <div class="telem-route">
+                        <span class="telem-route-code" id="telemOrigin">---</span>
+                        <span class="telem-route-arrow">&#10132;</span>
+                        <span class="telem-route-code" id="telemDestination">---</span>
+                    </div>
+                    <div class="telem-route-names">
+                        <span class="telem-route-name" id="telemOriginName">Origin Airport</span>
+                        <span class="telem-route-name" id="telemDestinationName">Destination Airport</span>
+                    </div>
+
+                    <!-- Flight Meta (plain text lines) -->
+                    <div class="telem-flight-meta">
+                        <div class="telem-meta-line">Flight: &nbsp;<strong id="telemCallsign">---</strong></div>
+                        <div class="telem-meta-line">Aircraft: &nbsp;<strong id="telemAircraft">---</strong></div>
+                        <div class="telem-meta-line">Status: &nbsp;<strong id="telemPhase">---</strong></div>
+                    </div>
                 </div>
 
-                <div class="telem-flight-meta">
-                    <div class="telem-meta-row">
-                        <span class="telem-meta-label">Flight</span>
-                        <span class="telem-meta-value" id="telemCallsign">---</span>
-                    </div>
-                    <div class="telem-meta-row">
-                        <span class="telem-meta-label">Aircraft</span>
-                        <span class="telem-meta-value" id="telemAircraft">---</span>
-                    </div>
-                    <div class="telem-meta-row">
-                        <span class="telem-meta-label">Status</span>
-                        <span class="telem-meta-value status-badge" id="telemPhase">---</span>
-                    </div>
-                    <div class="telem-meta-row">
-                        <span class="telem-meta-label">ICAO24</span>
-                        <span class="telem-meta-value" id="telemIcao24">---</span>
-                    </div>
+                <!-- Decorative airplane icons bottom-right -->
+                <div class="telem-deco-planes">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" opacity="0.15">
+                        <path d="M12 2L8 10H4L6 14H8L10 22H14L16 14H18L20 10H16L12 2Z"/>
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" opacity="0.1" style="margin-left: -8px; margin-top: -4px;">
+                        <path d="M12 2L8 10H4L6 14H8L10 22H14L16 14H18L20 10H16L12 2Z"/>
+                    </svg>
                 </div>
             </div>
 
@@ -120,9 +118,8 @@
         <div class="telem-charts-row">
             <div class="telem-chart-card">
                 <div class="telem-chart-header">
-                    <span class="telem-chart-label">Altitude</span>
-                    <span class="telem-chart-value" id="telemAltValue">---</span>
-                    <span class="telem-chart-unit">ft</span>
+                    <span class="telem-chart-label">Altitude (ft)</span>
+                    <span class="telem-chart-value" id="telemAltValue">---<span class="telem-chart-unit">ft</span></span>
                 </div>
                 <div class="telem-chart-container">
                     <canvas id="telemAltChart"></canvas>
@@ -130,9 +127,8 @@
             </div>
             <div class="telem-chart-card">
                 <div class="telem-chart-header">
-                    <span class="telem-chart-label">Ground Speed</span>
-                    <span class="telem-chart-value" id="telemSpeedValue">---</span>
-                    <span class="telem-chart-unit">kts</span>
+                    <span class="telem-chart-label">Ground Speed (kts)</span>
+                    <span class="telem-chart-value" id="telemSpeedValue">---<span class="telem-chart-unit">kts</span></span>
                 </div>
                 <div class="telem-chart-container">
                     <canvas id="telemSpeedChart"></canvas>
@@ -140,9 +136,8 @@
             </div>
             <div class="telem-chart-card">
                 <div class="telem-chart-header">
-                    <span class="telem-chart-label">Heading</span>
-                    <span class="telem-chart-value" id="telemHeadingValue">---</span>
-                    <span class="telem-chart-unit">&deg;</span>
+                    <span class="telem-chart-label">Heading (&deg;)</span>
+                    <span class="telem-chart-value" id="telemHeadingValue">---<span class="telem-chart-unit">&deg;</span></span>
                 </div>
                 <div class="telem-chart-container">
                     <canvas id="telemHeadingChart"></canvas>
@@ -155,20 +150,20 @@
             <div class="telem-status-section-title">Flight Status & Schedule</div>
             <div class="telem-status-grid">
                 <div class="telem-status-item">
-                    <div class="telem-status-label">Current Status</div>
-                    <div class="telem-status-value" id="telemCurrentStatus">---</div>
+                    <div class="telem-status-label">Current Status:</div>
+                    <div class="telem-status-value telem-status-big" id="telemCurrentStatus">---</div>
                 </div>
                 <div class="telem-status-item">
-                    <div class="telem-status-label">Vertical Rate</div>
-                    <div class="telem-status-value" id="telemVRate">---</div>
+                    <div class="telem-status-label" id="telemDepLabel">Departure Time:</div>
+                    <div class="telem-status-value telem-status-big" id="telemDepTime">---</div>
                 </div>
                 <div class="telem-status-item">
-                    <div class="telem-status-label">Distance</div>
-                    <div class="telem-status-value" id="telemDistance">---</div>
+                    <div class="telem-status-label" id="telemArrLabel">Estimated Arrival Time:</div>
+                    <div class="telem-status-value telem-status-big" id="telemArrTime">---</div>
                 </div>
                 <div class="telem-status-item">
-                    <div class="telem-status-label">Flight Status</div>
-                    <div class="telem-status-value status-on-time" id="telemFlightStatus">---</div>
+                    <div class="telem-status-label">Flight Status:</div>
+                    <div class="telem-status-value telem-status-big telem-status-green" id="telemFlightStatus">---</div>
                 </div>
             </div>
         </div>
@@ -176,23 +171,24 @@
         <!-- Bottom Status Bar -->
         <div class="telem-status-bar">
             <div class="telem-bar-item">
+                <span class="telem-bar-label">Connection status</span>
                 <span class="status-dot" id="telemConnDot"></span>
                 <span id="telemConnStatus">Connecting...</span>
             </div>
-            <div class="telem-bar-item">
-                <span id="telemUtcTime">UTC: --:--:--</span>
+            <div class="telem-bar-sep">|</div>
+            <div class="telem-bar-item" id="telemBarFlightInfo">
+                ---
             </div>
-            <div class="telem-bar-item">
-                <span id="telemLocalTime">Local: --:--:--</span>
-            </div>
-            <div class="telem-bar-item">
-                <span id="telemFlightTime">Flight Time: --:--</span>
-            </div>
-            <div class="telem-bar-item">
-                <span id="telemLastUpdate">Last update: --</span>
-            </div>
-            <div class="telem-bar-item" style="margin-left: auto;">
-                <a href="/" style="color: var(--accent-cyan); text-decoration: none;">&larr; Map View</a>
+            <div class="telem-bar-right">
+                <span id="telemUtcTime">UTC: ---</span>
+                <span class="telem-bar-sep">|</span>
+                <span id="telemLocalTime">Local: ---</span>
+                <span class="telem-bar-sep">|</span>
+                <span id="telemFlightTime">Flight Time: ---</span>
+                <span class="telem-bar-sep">|</span>
+                <span id="telemEta">EtA: ---</span>
+                <span class="telem-bar-sep">|</span>
+                <span id="telemBarTitle">Flight Telemetry</span>
             </div>
         </div>
     </div>

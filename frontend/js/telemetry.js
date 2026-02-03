@@ -1,13 +1,13 @@
 /**
  * FlightWall - Telemetry Dashboard JavaScript
  *
- * Full-screen flight telemetry deep-dive view.
+ * Full-screen flight telemetry deep-dive view matching the design mockup.
  * Handles:
- * - Leaflet map with flight path polyline
- * - Canvas telemetry charts (altitude, speed, heading)
+ * - Leaflet map with gradient flight path polyline
+ * - Canvas telemetry charts (altitude, speed, heading) with Y-axis labels
  * - Live polling for flight updates
- * - Scrolling ticker bar
- * - Status bar with clocks
+ * - Scrolling ticker bar with weather/system info
+ * - Status bar with clocks, flight time, ETA
  */
 
 // ============================================
@@ -17,57 +17,53 @@ const CONFIG = {
     API_BASE: '/api',
     POLL_INTERVAL_MS: 5000,
     HISTORY_MINUTES: 60,
-    DEFAULT_ZOOM: 6,
+    DEFAULT_ZOOM: 5,
 };
 
 // ============================================
 // State
 // ============================================
 let map = null;
-let flightPathLine = null;
+let flightPathGroup = null;
 let originMarker = null;
+let destMarker = null;
 let currentPosMarker = null;
 let icao24 = null;
 let flightData = null;
 let historyData = [];
 let pollTimer = null;
 let clockTimer = null;
+let firstFetchTime = null;
 
 // ============================================
 // Initialization
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Parse icao24 from URL
     const params = new URLSearchParams(window.location.search);
     icao24 = params.get('icao24');
 
     if (!icao24) {
-        document.querySelector('.telem-info-panel .telem-airline-name').textContent = 'No flight selected';
+        document.querySelector('.telem-flight-meta').innerHTML =
+            '<div class="telem-meta-line" style="color: var(--text-muted);">No flight selected. Use ?icao24=&lt;hex&gt;</div>';
+        initMap();
+        drawEmptyCharts();
+        startClocks();
+        updateConnectionStatus('disconnected', 'No flight');
         return;
     }
 
-    document.getElementById('telemIcao24').textContent = icao24;
-
-    // Init map
     initMap();
-
-    // Start clocks
+    drawEmptyCharts();
     startClocks();
 
-    // Start ticker animation
-    initTicker();
-
-    // Fetch initial data
     fetchFlightData();
     fetchHistoryData();
 
-    // Start polling
     pollTimer = setInterval(() => {
         fetchFlightData();
         fetchHistoryData();
     }, CONFIG.POLL_INTERVAL_MS);
 
-    // Copy button
     document.getElementById('copyFlightInfo').addEventListener('click', copyFlightInfo);
 });
 
@@ -76,24 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 function initMap() {
     map = L.map('telemMap', {
-        center: [40, -95],
+        center: [39, -98],
         zoom: CONFIG.DEFAULT_ZOOM,
         zoomControl: true,
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        attribution: '&copy; OSM &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 19,
     }).addTo(map);
+
+    setTimeout(() => map.invalidateSize(), 150);
+    window.addEventListener('resize', () => {
+        map.invalidateSize();
+        drawEmptyCharts();
+    });
 }
 
 function updateMapPath(positions) {
     if (!positions || positions.length === 0) return;
 
-    // Remove old path and markers
-    if (flightPathLine) map.removeLayer(flightPathLine);
+    // Clear old layers
+    if (flightPathGroup) map.removeLayer(flightPathGroup);
     if (originMarker) map.removeLayer(originMarker);
+    if (destMarker) map.removeLayer(destMarker);
     if (currentPosMarker) map.removeLayer(currentPosMarker);
 
     const latlngs = positions
@@ -102,60 +105,56 @@ function updateMapPath(positions) {
 
     if (latlngs.length === 0) return;
 
-    // Draw gradient polyline using segments
-    const segmentCount = latlngs.length - 1;
-    for (let i = 0; i < segmentCount; i++) {
-        const ratio = i / Math.max(segmentCount - 1, 1);
-        const color = interpolateColor(ratio);
+    flightPathGroup = L.layerGroup().addTo(map);
+
+    // Draw gradient polyline: purple -> blue -> cyan
+    const segCount = latlngs.length - 1;
+    for (let i = 0; i < segCount; i++) {
+        const ratio = i / Math.max(segCount - 1, 1);
         L.polyline([latlngs[i], latlngs[i + 1]], {
-            color: color,
+            color: interpolateColor(ratio),
             weight: 3,
-            opacity: 0.8,
-        }).addTo(map);
+            opacity: 0.85,
+        }).addTo(flightPathGroup);
     }
 
-    // Store reference for cleanup (we'll just clear all polylines on next update)
-    flightPathLine = L.layerGroup().addTo(map);
-
-    // Origin marker (blue circle)
+    // Origin marker: blue outlined circle
     originMarker = L.circleMarker(latlngs[0], {
-        radius: 6,
-        fillColor: '#3b82f6',
-        color: '#1e40af',
+        radius: 7,
+        fillColor: '#60a5fa',
+        color: '#3b82f6',
         weight: 2,
-        fillOpacity: 1,
+        fillOpacity: 0.9,
     }).addTo(map);
-    originMarker.bindTooltip('Origin', { permanent: false });
 
-    // Current position marker (yellow/gold)
+    // Current position: yellow star icon
     const lastPos = latlngs[latlngs.length - 1];
     const heading = flightData?.telemetry?.heading || 0;
     currentPosMarker = L.marker(lastPos, {
-        icon: createPlaneIcon(heading),
+        icon: createStarIcon(),
     }).addTo(map);
 
-    // Fit map to bounds
+    // Fit bounds
     const bounds = L.latLngBounds(latlngs);
-    map.fitBounds(bounds, { padding: [40, 40] });
+    map.fitBounds(bounds, { padding: [50, 50] });
 }
 
-function createPlaneIcon(heading) {
-    const svg = `
-        <svg width="28" height="28" viewBox="0 0 24 24" style="transform: rotate(${heading}deg);">
-            <path d="M12 2L8 10H4L6 14H8L10 22H14L16 14H18L20 10H16L12 2Z"
-                  fill="#eab308" stroke="#92400e" stroke-width="0.5"/>
-        </svg>
-    `;
+function createStarIcon() {
+    // Yellow 4-pointed star matching the screenshot
+    const svg = `<svg width="20" height="20" viewBox="0 0 20 20">
+        <polygon points="10,0 12,8 20,10 12,12 10,20 8,12 0,10 8,8"
+                 fill="#eab308" stroke="#a16207" stroke-width="0.5"/>
+    </svg>`;
     return L.divIcon({
-        className: 'aircraft-marker',
+        className: '',
         html: svg,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
     });
 }
 
 function interpolateColor(ratio) {
-    // Purple -> Blue -> Cyan gradient
+    // Purple (#9333ea) -> Blue (#3b82f6) -> Cyan (#06b6d4)
     if (ratio < 0.5) {
         const t = ratio * 2;
         const r = Math.round(147 * (1 - t) + 59 * t);
@@ -182,10 +181,11 @@ async function fetchFlightData() {
             return;
         }
         flightData = await response.json();
+        if (!firstFetchTime) firstFetchTime = Date.now();
         updateConnectionStatus('connected', 'Connected');
         updateFlightInfo(flightData);
         updateTicker(flightData);
-        document.getElementById('telemLastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+        updateStatusBar(flightData);
     } catch (error) {
         console.error('Flight data fetch error:', error);
         updateConnectionStatus('disconnected', 'Connection error');
@@ -209,67 +209,95 @@ async function fetchHistoryData() {
 // Flight Info Panel
 // ============================================
 function updateFlightInfo(flight) {
-    // Airline logo
     const callsign = flight.callsign || '';
     const airlineCode = callsign.substring(0, 3);
     const logoSvg = getAirlineLogo(airlineCode);
     document.getElementById('telemAirlineLogo').innerHTML = logoSvg;
 
-    // Airline name
-    const airlineName = getAirlineName(airlineCode) || callsign.substring(0, 2);
-    document.getElementById('telemAirlineName').textContent = airlineName;
-
     // Route
-    if (flight.route && flight.route.origin && flight.route.destination) {
-        document.getElementById('telemOrigin').textContent = flight.route.origin;
-        document.getElementById('telemDestination').textContent = flight.route.destination;
-        document.getElementById('telemOriginName').textContent = flight.route.origin_name || 'Origin';
-        document.getElementById('telemDestinationName').textContent = flight.route.destination_name || 'Destination';
-    }
+    const origin = flight.route?.origin || '---';
+    const dest = flight.route?.destination || '---';
+    document.getElementById('telemOrigin').textContent = origin;
+    document.getElementById('telemDestination').textContent = dest;
+    document.getElementById('telemOriginName').textContent = flight.route?.origin_name || 'Origin Airport';
+    document.getElementById('telemDestinationName').textContent = flight.route?.destination_name || 'Destination Airport';
 
-    // Flight meta
+    // Flight meta lines
     document.getElementById('telemCallsign').textContent = callsign || '---';
-    document.getElementById('telemAircraft').textContent = flight.aircraft_type_desc || flight.aircraft_type || 'Unknown';
+    document.getElementById('telemAircraft').textContent =
+        flight.aircraft_type_desc || flight.aircraft_type || 'Unknown';
 
-    // Phase
     const phase = flight.status?.flight_phase || 'unknown';
     const phaseDisplay = {
-        'climb': 'Climbing',
-        'cruise': 'Cruise',
-        'descent': 'Descending',
-        'ground': 'On Ground',
-        'unknown': 'In Flight',
+        'climb': 'Climbing', 'cruise': 'In Flight', 'descent': 'Descending',
+        'ground': 'On Ground', 'unknown': 'In Flight',
     };
-    const phaseEl = document.getElementById('telemPhase');
-    phaseEl.textContent = phaseDisplay[phase] || phase;
-    phaseEl.className = 'telem-meta-value status-badge ' + phase;
+    document.getElementById('telemPhase').textContent = phaseDisplay[phase] || 'In Flight';
 
-    // Telemetry values
+    // Chart header values (value + unit inline)
     const telemetry = flight.telemetry || {};
-    const position = flight.position || {};
-
     const altFt = telemetry.altitude_ft || 0;
     const speedKts = telemetry.speed_kts || 0;
     const heading = telemetry.heading || 0;
-    const vRate = telemetry.vertical_rate_fpm || 0;
-    const distKm = position.distance_km || flight.distance_km || 0;
 
-    document.getElementById('telemAltValue').textContent = altFt ? altFt.toLocaleString() : '---';
-    document.getElementById('telemSpeedValue').textContent = speedKts || '---';
-    document.getElementById('telemHeadingValue').textContent = heading || '---';
+    document.getElementById('telemAltValue').innerHTML = altFt
+        ? `${altFt.toLocaleString()}<span class="telem-chart-unit">ft</span>` : '---';
+    document.getElementById('telemSpeedValue').innerHTML = speedKts
+        ? `${speedKts}<span class="telem-chart-unit">kts</span>` : '---';
+    document.getElementById('telemHeadingValue').innerHTML = heading
+        ? `${heading}<span class="telem-chart-unit">&deg;</span>` : '---';
 
     // Status row
-    document.getElementById('telemCurrentStatus').textContent = phaseDisplay[phase] || 'In Flight';
-    document.getElementById('telemVRate').textContent = `${vRate > 0 ? '+' : ''}${vRate} fpm`;
-    document.getElementById('telemDistance').textContent = distKm ? `${distKm.toFixed(1)} km` : '---';
+    const phaseStatusDisplay = {
+        'climb': 'Climbing', 'cruise': 'Cruise (En route)', 'descent': 'Descending',
+        'ground': 'On Ground', 'unknown': 'In Flight',
+    };
+    document.getElementById('telemCurrentStatus').textContent = phaseStatusDisplay[phase] || 'In Flight';
 
-    const flightStatus = flight.route?.status || 'Active';
+    // Departure / Arrival labels with airport codes
+    if (origin !== '---') {
+        document.getElementById('telemDepLabel').textContent = `Departure Time (${origin}):`;
+    }
+    if (dest !== '---') {
+        document.getElementById('telemArrLabel').textContent = `Estimated Arrival Time (${dest}):`;
+    }
+
+    // Times - use first_seen or reasonable estimate
+    const depTime = flight.route?.departure_time || flight.first_seen;
+    if (depTime) {
+        const d = new Date(depTime * 1000 || depTime);
+        document.getElementById('telemDepTime').textContent = isNaN(d.getTime()) ? '---'
+            : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) + ' ' + getTimezoneAbbr();
+    }
+    const arrTime = flight.route?.arrival_time || flight.route?.eta;
+    if (arrTime) {
+        const d = new Date(arrTime * 1000 || arrTime);
+        document.getElementById('telemArrTime').textContent = isNaN(d.getTime()) ? '---'
+            : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) + ' ' + getTimezoneAbbr();
+    }
+
+    const flightStatus = flight.route?.status || 'active';
     const statusEl = document.getElementById('telemFlightStatus');
-    statusEl.textContent = flightStatus.charAt(0).toUpperCase() + flightStatus.slice(1);
-    statusEl.className = 'telem-status-value ' + (flightStatus === 'active' ? 'status-on-time' : '');
+    if (flightStatus === 'active' || flightStatus === 'on_time') {
+        statusEl.textContent = 'On Time';
+        statusEl.className = 'telem-status-value telem-status-big telem-status-green';
+    } else {
+        statusEl.textContent = flightStatus.charAt(0).toUpperCase() + flightStatus.slice(1);
+        statusEl.className = 'telem-status-value telem-status-big';
+    }
 
-    // Update page title
-    document.title = `FlightWall - ${callsign || icao24}`;
+    // Page title
+    const airlineName = getAirlineName(airlineCode) || '';
+    const titleRoute = (origin !== '---' && dest !== '---') ? `${origin} to ${dest}` : callsign;
+    document.title = airlineName
+        ? `${airlineName} Flight Telemetry \u2013 ${titleRoute}`
+        : `Flight Telemetry \u2013 ${titleRoute}`;
+}
+
+function getTimezoneAbbr() {
+    try {
+        return new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+    } catch { return ''; }
 }
 
 // ============================================
@@ -278,115 +306,137 @@ function updateFlightInfo(flight) {
 function updateCharts(positions) {
     if (!positions || positions.length < 2) return;
 
-    const altitudes = positions.map(p => p.altitude_ft || p.baro_altitude * 3.28084 || 0);
-    const speeds = positions.map(p => p.speed_kts || p.velocity * 1.94384 || 0);
+    const altitudes = positions.map(p => p.altitude_ft || (p.baro_altitude ? p.baro_altitude * 3.28084 : 0));
+    const speeds = positions.map(p => p.speed_kts || (p.velocity ? p.velocity * 1.94384 : 0));
     const headings = positions.map(p => p.heading || p.true_track || 0);
 
-    drawAreaChart('telemAltChart', altitudes, '#06b6d4', 'rgba(6, 182, 212, 0.15)');
-    drawAreaChart('telemSpeedChart', speeds, '#22c55e', 'rgba(34, 197, 94, 0.15)');
-    drawAreaChart('telemHeadingChart', headings, '#8b5cf6', 'rgba(139, 92, 246, 0.15)');
+    drawAreaChart('telemAltChart', altitudes, '#06b6d4', 'rgba(6, 182, 212, 0.25)', 'ft');
+    drawAreaChart('telemSpeedChart', speeds, '#06b6d4', 'rgba(6, 182, 212, 0.25)', 'kts');
+    drawAreaChart('telemHeadingChart', headings, '#06b6d4', 'rgba(6, 182, 212, 0.25)', '\u00B0');
 }
 
-function drawAreaChart(canvasId, data, lineColor, fillColor) {
+function drawAreaChart(canvasId, data, lineColor, fillColor, unitSuffix) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || data.length < 2) return;
 
     const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width = rect.width * (window.devicePixelRatio || 1);
-    canvas.height = rect.height * (window.devicePixelRatio || 1);
+    if (rect.width === 0 || rect.height === 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
     canvas.style.width = rect.width + 'px';
     canvas.style.height = rect.height + 'px';
 
     const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-    const dpr = window.devicePixelRatio || 1;
-
     ctx.scale(dpr, dpr);
     const width = rect.width;
     const height = rect.height;
 
-    // Clear
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#1a1a24';
+    // Clear with dark bg
+    ctx.fillStyle = '#111118';
     ctx.fillRect(0, 0, width, height);
 
-    // Margins
-    const ml = 40, mr = 10, mt = 5, mb = 20;
+    // Margins for Y-axis labels
+    const ml = 55, mr = 8, mt = 8, mb = 8;
     const pw = width - ml - mr;
     const ph = height - mt - mb;
 
-    // Data range
-    const min = Math.min(...data);
-    const max = Math.max(...data);
+    // Data range - use 0 as floor for altitude/speed
+    let min = Math.min(...data);
+    let max = Math.max(...data);
+    if (unitSuffix === 'ft' || unitSuffix === 'kts') min = 0;
     const range = max - min || 1;
 
-    // Draw grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    // Nice tick values
+    const tickCount = 4;
+    const ticks = [];
+    for (let i = 0; i <= tickCount; i++) {
+        ticks.push(max - (range * i / tickCount));
+    }
+
+    // Draw horizontal grid lines + Y-axis labels
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 4; i++) {
-        const y = mt + (ph * i / 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'right';
+
+    for (let i = 0; i <= tickCount; i++) {
+        const y = mt + (ph * i / tickCount);
+        // Grid line
         ctx.beginPath();
         ctx.moveTo(ml, y);
         ctx.lineTo(ml + pw, y);
         ctx.stroke();
+        // Label
+        const val = ticks[i];
+        let label;
+        if (unitSuffix === 'ft') {
+            label = val >= 1000 ? Math.round(val).toLocaleString() + 'ft' : Math.round(val) + 'ft';
+        } else if (unitSuffix === 'kts') {
+            label = Math.round(val) + 'kts';
+        } else {
+            label = Math.round(val) + unitSuffix;
+        }
+        ctx.fillText(label, ml - 5, y + 4);
     }
 
-    // Draw Y-axis labels
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = '10px Inter, sans-serif';
-    ctx.textAlign = 'right';
-    for (let i = 0; i <= 4; i++) {
-        const val = max - (range * i / 4);
-        const y = mt + (ph * i / 4) + 3;
-        ctx.fillText(formatChartValue(val), ml - 4, y);
-    }
-
-    // Build path
+    // Build path points
     const points = data.map((val, i) => ({
         x: ml + (i / (data.length - 1)) * pw,
         y: mt + ph - ((val - min) / range) * ph,
     }));
 
-    // Draw filled area
+    // Fill area
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-    }
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
     ctx.lineTo(points[points.length - 1].x, mt + ph);
     ctx.lineTo(points[0].x, mt + ph);
     ctx.closePath();
     ctx.fillStyle = fillColor;
     ctx.fill();
 
-    // Draw line
+    // Stroke line
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
-    for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-    }
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
     ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Draw dot at latest point
+    // Latest point dot
     const last = points[points.length - 1];
     ctx.beginPath();
     ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = lineColor;
+    ctx.fillStyle = '#60a5fa';
     ctx.fill();
 }
 
-function formatChartValue(val) {
-    if (Math.abs(val) >= 1000) {
-        return (val / 1000).toFixed(1) + 'k';
-    }
-    return Math.round(val).toString();
+function drawEmptyCharts() {
+    ['telemAltChart', 'telemSpeedChart', 'telemHeadingChart'].forEach(canvasId => {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = rect.width + 'px';
+        canvas.style.height = rect.height + 'px';
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.fillStyle = '#111118';
+        ctx.fillRect(0, 0, rect.width, rect.height);
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Awaiting data\u2026', rect.width / 2, rect.height / 2 + 4);
+    });
 }
 
 // ============================================
-// Clocks
+// Clocks & Status Bar
 // ============================================
 function startClocks() {
     updateClocks();
@@ -395,48 +445,79 @@ function startClocks() {
 
 function updateClocks() {
     const now = new Date();
-    document.getElementById('telemUtcTime').textContent =
-        `UTC: ${now.toISOString().substring(11, 19)}`;
+    const utcStr = now.toISOString().replace('T', ' ').substring(0, 19);
+    document.getElementById('telemUtcTime').textContent = `UTC: ${utcStr}`;
     document.getElementById('telemLocalTime').textContent =
-        `Local: ${now.toLocaleTimeString()}`;
+        `Local: ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+
+    // Flight time (elapsed since first data fetch)
+    if (firstFetchTime) {
+        const elapsed = Math.floor((Date.now() - firstFetchTime) / 1000);
+        const hrs = Math.floor(elapsed / 3600);
+        const mins = Math.floor((elapsed % 3600) / 60);
+        document.getElementById('telemFlightTime').textContent =
+            `Flight Time: ${hrs}h ${mins.toString().padStart(2, '0')}m`;
+    }
 }
 
-// ============================================
-// Connection Status
-// ============================================
+function updateStatusBar(flight) {
+    const callsign = flight.callsign || '';
+    const airlineCode = callsign.substring(0, 3);
+    const airlineName = getAirlineName(airlineCode) || callsign;
+    const origin = flight.route?.origin || '';
+    const dest = flight.route?.destination || '';
+    const routeStr = (origin && dest) ? `${origin} to ${dest}` : '';
+
+    // Connection info area
+    const connInfo = airlineName + (routeStr ? ` \uD83D\uDCE1 ${routeStr}` : '');
+    document.getElementById('telemConnStatus').textContent = connInfo;
+
+    // Right-side flight title
+    const titleStr = airlineName + (routeStr ? ` Flight Telemetry \u2014 ${routeStr}` : ' Flight Telemetry');
+    document.getElementById('telemBarTitle').textContent = titleStr;
+
+    // ETA
+    const arrTime = flight.route?.arrival_time || flight.route?.eta;
+    if (arrTime) {
+        const d = new Date(arrTime * 1000 || arrTime);
+        if (!isNaN(d.getTime())) {
+            document.getElementById('telemEta').textContent =
+                `EtA: ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })} ${getTimezoneAbbr()}`;
+        }
+    }
+}
+
 function updateConnectionStatus(state, message) {
-    const dot = document.getElementById('telemConnDot');
-    const text = document.getElementById('telemConnStatus');
-    dot.className = 'status-dot ' + state;
-    text.textContent = message;
+    document.getElementById('telemConnDot').className = 'status-dot ' + state;
+    if (!flightData) {
+        document.getElementById('telemConnStatus').textContent = message;
+    }
 }
 
 // ============================================
 // Ticker Bar
 // ============================================
-function initTicker() {
-    // CSS animation handles the scrolling
-}
-
 function updateTicker(flight) {
     const callsign = flight.callsign || '---';
-    const route = (flight.route?.origin && flight.route?.destination)
-        ? `${flight.route.origin} > ${flight.route.destination}` : '---';
-    const aircraft = flight.aircraft_type_desc || flight.aircraft_type || '---';
-    const alt = flight.telemetry?.altitude_ft
-        ? `${flight.telemetry.altitude_ft.toLocaleString()}ft` : '---';
+    const origin = flight.route?.origin || '---';
+    const dest = flight.route?.destination || '---';
+    const alt = flight.telemetry?.altitude_ft;
+    const speed = flight.telemetry?.speed_kts;
 
-    const flightText = `Flight: ${callsign} | Alt: ${alt}`;
-    const routeText = `Route: ${route}`;
-    const aircraftText = `Aircraft: ${aircraft}`;
+    const parts = [
+        `${origin}: Weather data loading`,
+        `${dest}: Weather data loading`,
+        `${callsign} EST Arr: ---`,
+        'System Status: Normal',
+        'ADS-B Signal: Strong',
+        alt ? `Altitude: ${alt.toLocaleString()}ft` : null,
+        speed ? `Ground Speed: ${speed}kts` : null,
+        'Weather Update: Checking...',
+    ].filter(Boolean);
 
-    // Update both copies for seamless scrolling
-    document.getElementById('tickerFlight').textContent = flightText;
-    document.getElementById('tickerFlight2').textContent = flightText;
-    document.getElementById('tickerRoute').textContent = routeText;
-    document.getElementById('tickerRoute2').textContent = routeText;
-    document.getElementById('tickerAircraft').textContent = aircraftText;
-    document.getElementById('tickerAircraft2').textContent = aircraftText;
+    const text = parts.join(' | ');
+    document.getElementById('tickerText1').textContent = text;
+    document.getElementById('tickerText2').textContent = text;
 }
 
 // ============================================
@@ -444,7 +525,6 @@ function updateTicker(flight) {
 // ============================================
 function copyFlightInfo() {
     if (!flightData) return;
-
     const info = [
         `Flight: ${flightData.callsign || '---'}`,
         `ICAO24: ${icao24}`,
@@ -452,7 +532,7 @@ function copyFlightInfo() {
         `Route: ${flightData.route?.origin || '---'} -> ${flightData.route?.destination || '---'}`,
         `Altitude: ${flightData.telemetry?.altitude_ft?.toLocaleString() || '---'} ft`,
         `Speed: ${flightData.telemetry?.speed_kts || '---'} kts`,
-        `Heading: ${flightData.telemetry?.heading || '---'}°`,
+        `Heading: ${flightData.telemetry?.heading || '---'}\u00B0`,
     ].join('\n');
 
     navigator.clipboard.writeText(info).then(() => {

@@ -1,12 +1,26 @@
 """
-FlightWall Flask Application.
+FlightWall — Real-Time Flight Telemetry Platform.
 
-Main entry point for the web application. Initializes:
-- Database schema
-- Ingestion pipeline
-- Cache refresh loop
-- API routes
-- Static file serving
+Application factory and entry point for the Flask web server.
+
+Architecture overview:
+    ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+    │  Frontend    │────▶│  Flask API   │────▶│   Cache     │
+    │  (Leaflet,  │     │  /api/flights│     │  (in-mem)   │
+    │   Canvas)   │     │  /api/metrics│     └──────┬──────┘
+    └─────────────┘     └──────────────┘            │
+                                                    ▼
+    ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+    │  OpenSky    │────▶│  Ingestion   │────▶│  SQLite DB  │
+    │  Network    │     │  Pipeline    │     │  (WAL mode) │
+    └─────────────┘     └──────────────┘     └─────────────┘
+
+Startup sequence:
+    1. Initialize database schema (SQLAlchemy)
+    2. Register API blueprints (flights, metrics)
+    3. Detect observer location (IP geolocation or .env override)
+    4. Start background ingestion pipeline (OpenSky → DB → Cache)
+    5. Serve frontend views (map, ticker, telemetry)
 
 Usage:
     python -m backend.app

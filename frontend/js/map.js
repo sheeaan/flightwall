@@ -337,24 +337,12 @@ const telemetryHistory = {
 
 function updateFlightPanel(flight) {
     // Airline logo - extract code from callsign
-    const airlineCode = flight.callsign?.substring(0, 2) || '--';
-    document.getElementById('panelAirlineCode').textContent = airlineCode;
-
-    // Set airline-specific logo colors
+    const airlineCode = flight.callsign?.substring(0, 3) || '';
     const logoEl = document.getElementById('panelAirlineLogo');
-    const airlineColors = {
-        'AC': ['#dc2626', '#991b1b'], // Air Canada - Red
-        'AA': ['#0078d2', '#005eb8'], // American - Blue
-        'UA': ['#002244', '#001a33'], // United - Dark Blue
-        'DL': ['#c8102e', '#9a0c23'], // Delta - Red
-        'WN': ['#f9b612', '#d4990f'], // Southwest - Yellow/Orange
-        'AS': ['#00274d', '#001a33'], // Alaska - Dark Blue
-        'B6': ['#003876', '#002855'], // JetBlue - Blue
-        'WS': ['#00a651', '#008c45'], // WestJet - Green
-        'RP': ['#1e3a5f', '#152942'], // Republic - Navy
-    };
-    const colors = airlineColors[airlineCode] || ['#3b82f6', '#2563eb'];
-    logoEl.style.background = `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
+    if (typeof getAirlineLogo === 'function') {
+        logoEl.innerHTML = getAirlineLogo(airlineCode);
+        logoEl.style.background = 'var(--bg-tertiary)';
+    }
 
     // Route display
     if (flight.route && flight.route.origin && flight.route.destination) {
@@ -439,8 +427,8 @@ function updateFlightPanel(flight) {
 
     // Draw graphs
     drawTelemetryGraph('altitudeGraph', telemetryHistory.altitude, '#06b6d4');
-    drawTelemetryGraph('speedGraph', telemetryHistory.speed, '#22c55e');
-    drawTelemetryGraph('headingGraph', telemetryHistory.heading, '#8b5cf6');
+    drawTelemetryGraph('speedGraph', telemetryHistory.speed, '#06b6d4');
+    drawTelemetryGraph('headingGraph', telemetryHistory.heading, '#06b6d4');
 }
 
 function drawTelemetryGraph(canvasId, data, color) {

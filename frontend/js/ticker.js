@@ -17,7 +17,6 @@ const CONFIG = {
     STORAGE_KEY: 'flightwall_range_km',
     STORAGE_KEY_ALT_UNIT: 'flightwall_alt_unit',
     STORAGE_KEY_SPD_UNIT: 'flightwall_spd_unit',
-    STORAGE_KEY_STYLE: 'flightwall_display_style',
     STORAGE_KEY_AIRPORTS: 'flightwall_airport_display',
 };
 
@@ -29,7 +28,6 @@ const UNITS = {
 
 // Display settings
 const DISPLAY = {
-    style: 'led',      // 'led' or 'modern'
     airports: 'codes', // 'codes' or 'names'
 };
 
@@ -51,13 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUnitsFromStorage();
     loadDisplayFromStorage();
 
-    // Apply initial display style
-    applyDisplayStyle();
-
     // Initialize settings panel
     initSettingsPanel();
     initUnitButtons();
-    initDisplayButtons();
+    initAirportButtons();
 
     // Start polling
     fetchTickerData();
@@ -185,10 +180,10 @@ function showFlight(flight) {
             vrateDisplay = `${sign}${flight.vertical_rate_fpm}fpm`;
         }
         vrateEl.textContent = vrateDisplay;
-        vrateEl.className = 'led-value ' + (flight.vertical_rate_fpm < 0 ? 'negative' : flight.vertical_rate_fpm > 0 ? 'positive' : '');
+        vrateEl.className = 'ticker-telem-value ' + (flight.vertical_rate_fpm < 0 ? 'negative' : flight.vertical_rate_fpm > 0 ? 'positive' : '');
     } else {
         vrateEl.textContent = '---';
-        vrateEl.className = 'led-value';
+        vrateEl.className = 'ticker-telem-value';
     }
 }
 
@@ -401,62 +396,25 @@ function initUnitButtons() {
 }
 
 function loadDisplayFromStorage() {
-    const style = localStorage.getItem(CONFIG.STORAGE_KEY_STYLE);
     const airports = localStorage.getItem(CONFIG.STORAGE_KEY_AIRPORTS);
 
-    if (style === 'led' || style === 'modern') {
-        DISPLAY.style = style;
-    }
     if (airports === 'codes' || airports === 'names') {
         DISPLAY.airports = airports;
     }
 }
 
 function saveDisplayToStorage() {
-    localStorage.setItem(CONFIG.STORAGE_KEY_STYLE, DISPLAY.style);
     localStorage.setItem(CONFIG.STORAGE_KEY_AIRPORTS, DISPLAY.airports);
 }
 
-function applyDisplayStyle() {
-    if (DISPLAY.style === 'modern') {
-        document.body.classList.add('modern');
-    } else {
-        document.body.classList.remove('modern');
-    }
-}
-
-function initDisplayButtons() {
-    const styleLedBtn = document.getElementById('styleLed');
-    const styleModernBtn = document.getElementById('styleModern');
+function initAirportButtons() {
     const airportCodesBtn = document.getElementById('airportCodes');
     const airportNamesBtn = document.getElementById('airportNames');
 
     // Set initial active states
-    styleLedBtn.classList.toggle('active', DISPLAY.style === 'led');
-    styleModernBtn.classList.toggle('active', DISPLAY.style === 'modern');
     airportCodesBtn.classList.toggle('active', DISPLAY.airports === 'codes');
     airportNamesBtn.classList.toggle('active', DISPLAY.airports === 'names');
 
-    // Style toggle
-    styleLedBtn.addEventListener('click', () => {
-        DISPLAY.style = 'led';
-        styleLedBtn.classList.add('active');
-        styleModernBtn.classList.remove('active');
-        applyDisplayStyle();
-        saveDisplayToStorage();
-        resetSettingsIdleTimeout();
-    });
-
-    styleModernBtn.addEventListener('click', () => {
-        DISPLAY.style = 'modern';
-        styleModernBtn.classList.add('active');
-        styleLedBtn.classList.remove('active');
-        applyDisplayStyle();
-        saveDisplayToStorage();
-        resetSettingsIdleTimeout();
-    });
-
-    // Airport display toggle
     airportCodesBtn.addEventListener('click', () => {
         DISPLAY.airports = 'codes';
         airportCodesBtn.classList.add('active');

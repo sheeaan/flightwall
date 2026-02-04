@@ -146,19 +146,17 @@ body {
     width: 80px;
     height: 80px;
     margin: 0 auto var(--spacing-md);
-    background: linear-gradient(135deg, #dc2626, #991b1b);
+    background: var(--bg-tertiary);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+    overflow: hidden;
 }
 
-.airline-logo-text {
-    font-family: var(--font-mono);
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
+.airline-logo svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* Route Hero Display */
@@ -322,6 +320,40 @@ body {
 
 .status-on-time {
     color: var(--accent-green);
+}
+
+/* Flight Panel Link */
+.flight-panel-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.flight-panel-link a {
+    color: var(--accent-cyan);
+    text-decoration: none;
+    font-size: 12px;
+    font-family: var(--font-mono);
+}
+
+.flight-panel-link a:hover {
+    color: var(--text-primary);
+}
+
+/* Status Bar Links */
+.status-item-right {
+    margin-left: auto;
+    gap: var(--spacing-md);
+}
+
+.status-link {
+    color: var(--accent-cyan);
+    text-decoration: none;
+    font-family: var(--font-mono);
+}
+
+.status-link:hover {
+    color: var(--text-primary);
 }
 
 /* Anomaly Banner */
@@ -600,109 +632,11 @@ body {
 }
 
 /* ============================================
-   Ticker View Styles
+   Animations
    ============================================ */
-.ticker-container {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: var(--bg-primary);
-    padding: var(--spacing-xl);
-}
-
-.ticker-flight {
-    text-align: center;
-    animation: fadeIn 0.5s ease;
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-.ticker-callsign {
-    font-family: var(--font-mono);
-    font-size: 72px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 2px;
-    margin-bottom: var(--spacing-md);
-}
-
-.ticker-operator {
-    font-size: 24px;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xl);
-}
-
-.ticker-aircraft-type {
-    font-family: var(--font-mono);
-    font-size: 28px;
-    color: var(--accent-cyan);
-    margin-bottom: var(--spacing-xl);
-}
-
-.ticker-telemetry {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-xl);
-    margin-bottom: var(--spacing-xl);
-}
-
-.ticker-metric {
-    text-align: center;
-}
-
-.ticker-metric-value {
-    font-family: var(--font-mono);
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.ticker-metric-label {
-    font-size: 14px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: var(--spacing-xs);
-}
-
-.ticker-status {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
-}
-
-.ticker-footer {
-    position: absolute;
-    bottom: var(--spacing-lg);
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--spacing-xl);
-    color: var(--text-muted);
-    font-size: 12px;
-}
-
-.ticker-progress {
-    width: 200px;
-    height: 4px;
-    background: var(--bg-tertiary);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.ticker-progress-bar {
-    height: 100%;
-    background: var(--accent-blue);
-    transition: width 1s linear;
 }
 
 /* ============================================
@@ -802,17 +736,6 @@ body {
         display: none;
     }
 
-    .ticker-callsign {
-        font-size: 48px;
-    }
-
-    .ticker-metric-value {
-        font-size: 32px;
-    }
-
-    .ticker-telemetry {
-        flex-wrap: wrap;
-    }
 }
 
 /* ============================================

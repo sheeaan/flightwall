@@ -290,8 +290,8 @@ function updateFlightInfo(flight) {
     const airlineName = getAirlineName(airlineCode) || '';
     const titleRoute = (origin !== '---' && dest !== '---') ? `${origin} to ${dest}` : callsign;
     document.title = airlineName
-        ? `${airlineName} Flight Telemetry \u2013 ${titleRoute}`
-        : `Flight Telemetry \u2013 ${titleRoute}`;
+        ? `FlightWall - ${airlineName} ${titleRoute}`
+        : `FlightWall - Telemetry \u2013 ${titleRoute}`;
 }
 
 function getTimezoneAbbr() {

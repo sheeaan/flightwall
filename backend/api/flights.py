@@ -419,6 +419,7 @@ def get_flight_history(icao24: str):
         ).limit(limit).all()
 
         # Convert to time-series format
+        # IMPORTANT: All arrays must have the same length for frontend alignment
         data = {
             'timestamps': [],
             'altitudes': [],
@@ -432,8 +433,11 @@ def get_flight_history(icao24: str):
             data['altitudes'].append(h.altitude_ft)
             data['speeds'].append(h.speed_kts)
             data['vertical_rates'].append(h.vertical_rate_fpm)
-            if h.latitude and h.longitude:
+            # Always append position (even if null) to maintain array alignment
+            if h.latitude is not None and h.longitude is not None:
                 data['positions'].append([h.latitude, h.longitude])
+            else:
+                data['positions'].append(None)
 
     query_time_ms = (time.perf_counter() - start_time) * 1000
 

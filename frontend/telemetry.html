@@ -94,6 +94,9 @@
                         <div class="telem-meta-line">Flight: &nbsp;<strong id="telemCallsign">---</strong></div>
                         <div class="telem-meta-line">Aircraft: &nbsp;<strong id="telemAircraft">---</strong></div>
                         <div class="telem-meta-line">Status: &nbsp;<strong id="telemPhase">---</strong></div>
+                        <div class="telem-meta-line telem-alliance-line" id="telemAllianceLine" style="display: none;">
+                            Alliance: &nbsp;<span id="telemAllianceLogo" class="telem-alliance-logo"></span><strong id="telemAllianceName">---</strong>
+                        </div>
                     </div>
                 </div>
 
@@ -136,8 +139,8 @@
             </div>
             <div class="telem-chart-card">
                 <div class="telem-chart-header">
-                    <span class="telem-chart-label">Heading (&deg;)</span>
-                    <span class="telem-chart-value" id="telemHeadingValue">---<span class="telem-chart-unit">&deg;</span></span>
+                    <span class="telem-chart-label">Vertical Rate (fpm)</span>
+                    <span class="telem-chart-value" id="telemHeadingValue">---<span class="telem-chart-unit">fpm</span></span>
                 </div>
                 <div class="telem-chart-container">
                     <canvas id="telemHeadingChart"></canvas>

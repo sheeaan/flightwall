@@ -152,11 +152,16 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 12px;
+    box-sizing: border-box;
 }
 
 .airline-logo svg {
     width: 100%;
     height: 100%;
+    max-width: 56px;
+    max-height: 56px;
+    object-fit: contain;
 }
 
 /* Route Hero Display */
@@ -1060,11 +1065,19 @@ body {
     border-radius: 50%;
     background: var(--bg-tertiary);
     overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .telem-airline-logo svg {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+}
+
+.telem-airline-logo svg.airline-logo {
+    max-width: 90px;
+    max-height: 90px;
 }
 
 /* Route display */
@@ -1121,6 +1134,46 @@ body {
 
 .telem-meta-line strong {
     font-weight: 600;
+}
+
+.telem-alliance-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.telem-alliance-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+}
+
+.telem-alliance-logo svg {
+    width: 100%;
+    height: 100%;
+}
+
+.alliance-logo {
+    width: 100%;
+    height: 100%;
+}
+
+.panel-alliance-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.panel-alliance-logo svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* Decorative airplane icons */

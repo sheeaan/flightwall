@@ -264,13 +264,6 @@ A collection of moments that inspired this project.
 <br>
 
 <p align="center">
-  <img src="photos/20251121_161038.jpg" width="600" alt="Air France on approach">
-</p>
-<p align="center"><em>Air France on approach — the kind of view that started it all</em></p>
-
-<br>
-
-<p align="center">
   <img src="photos/20250814_185927.jpg" width="600" alt="Aircraft nose at the gate">
 </p>
 <p align="center"><em>Wowie shot at gate 63</em></p>
